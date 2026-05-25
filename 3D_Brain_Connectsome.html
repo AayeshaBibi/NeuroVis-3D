@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>3D Brain Atlas</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Space Grotesk',sans-serif;background:#08090e;color:#e8e4df;overflow:hidden;height:100vh}
+canvas{display:block;position:fixed;top:0;left:0;z-index:1}
+#lbl{position:fixed;top:0;left:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.lb{position:absolute;transform:translate(-50%,-100%);padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:0 1px 4px rgba(0,0,0,.9);transition:opacity .3s}
+#pnl{position:fixed;top:0;right:0;width:380px;height:100vh;background:#0e1018;border-left:1px solid #222640;z-index:10;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#222640 transparent}
+#tgP{position:absolute;left:-28px;top:50%;transform:translateY(-50%);width:28px;height:44px;background:#0e1018;border:1px solid #222640;border-right:none;border-radius:5px 0 0 5px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#7a7e94;font-size:10px}
+#tgP:hover{color:#f0a030}
+.hd{padding:14px 16px 10px;border-bottom:1px solid #222640;background:linear-gradient(135deg,rgba(240,160,48,.06),transparent)}
+.hd h2{font-size:15px;font-weight:700;line-height:1.3}.hd .sb{font-size:9px;color:#7a7e94;margin-top:2px}
+.sc{padding:10px 16px;border-bottom:1px solid #222640}
+.sc h3{font-size:9px;font-weight:600;color:#f0a030;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.sc h3 i{font-size:8px}
+.gd{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.gi{background:#151822;border:1px solid #222640;border-radius:4px;padding:5px 7px}
+.gi .k{font-size:7px;color:#7a7e94;text-transform:uppercase}.gi .v{font-size:10px;font-weight:600;margin-top:1px}
+.tx{font-size:10px;line-height:1.5;color:#e8e4df;opacity:.88}
+.wc{background:#151822;border:1px solid #222640;border-radius:4px;padding:6px 8px;margin-bottom:4px;display:flex;gap:6px;align-items:flex-start}
+.wc canvas{width:30px;height:14px;border-radius:2px;flex-shrink:0}
+.wn{font-size:9px;font-weight:600}.wf{font-size:7px;color:#7a7e94}.wfn{font-size:8px;color:#e8e4df;opacity:.8;margin-top:1px}
+.cf{display:flex;align-items:center;gap:4px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:9px;flex-wrap:wrap}
+.cf .ar{color:#f0a030;font-size:7px}
+.dt{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.bt{display:inline-block;padding:3px 8px;background:#151822;border:1px solid #222640;border-radius:12px;font-size:8px;cursor:pointer;margin:2px;transition:all .2s;color:#e8e4df;font-family:inherit}
+.bt:hover{border-color:#f0a030;color:#f0a030}
+.bb{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;background:#151822;border:1px solid #222640;border-radius:12px;font-size:8px;cursor:pointer;color:#7a7e94;font-family:inherit;margin-bottom:4px}
+.bb:hover{border-color:#f0a030;color:#f0a030}
+.nb{height:4px;background:#151822;border-radius:2px;margin-top:2px;overflow:hidden;border:1px solid #222640}
+.nf{height:100%;border-radius:2px;transition:width .6s}
+.so{background:rgba(255,107,53,.04);border:1px solid rgba(255,107,53,.1);border-radius:4px;padding:5px 7px;margin-bottom:4px}
+.si2{background:rgba(0,212,170,.04);border:1px solid rgba(0,212,170,.1);border-radius:4px;padding:5px 7px;margin-bottom:4px}
+.sf{display:flex;align-items:center;gap:4px;padding:2px 0;font-size:8px}
+#tb{position:fixed;top:0;left:0;right:380px;height:42px;background:rgba(8,9,14,.88);backdrop-filter:blur(8px);border-bottom:1px solid #222640;z-index:10;display:flex;align-items:center;padding:0 14px;gap:8px}
+#tb h1{font-size:14px;font-weight:700;background:linear-gradient(135deg,#f0a030,#e06050);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+.zm{font-size:8px;color:#7a7e94;padding:2px 6px;background:#151822;border:1px solid #222640;border-radius:8px;white-space:nowrap;min-width:65px;text-align:center}
+.vb{padding:3px 8px;background:#151822;border:1px solid #222640;border-radius:4px;color:#7a7e94;font-size:8px;cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;display:flex;align-items:center;justify-content:center}
+.vb:hover,.vb.on{border-color:#f0a030;color:#f0a030}
+#bc{display:flex;align-items:center;gap:2px;font-size:8px;color:#7a7e94;overflow:hidden}
+#bc .cm{cursor:pointer;transition:color .2s;white-space:nowrap}#bc .cm:hover{color:#f0a030}
+#bc .sp{color:#222640;flex-shrink:0}
+#lg{position:fixed;top:50px;left:10px;background:rgba(14,16,24,.9);backdrop-filter:blur(8px);border:1px solid #222640;border-radius:6px;padding:8px 10px;z-index:10;font-size:7px}
+#lg h5{font-size:8px;font-weight:600;color:#f0a030;margin-bottom:4px}
+.li{display:flex;align-items:center;gap:3px;padding:1px 0;color:#7a7e94}
+.lc{width:6px;height:6px;border-radius:1px;flex-shrink:0}
+#sm{position:fixed;bottom:10px;left:10px;width:260px;background:rgba(14,16,24,.92);backdrop-filter:blur(8px);border:1px solid #222640;border-radius:6px;z-index:10;padding:8px 10px;max-height:200px;overflow-y:auto}
+#sm h4{font-size:9px;font-weight:600;color:#f0a030;margin-bottom:4px}
+.sli{display:flex;align-items:center;gap:4px;padding:2px 0;font-size:8px;color:#e8e4df;opacity:.85}
+.sli .pu{width:4px;height:4px;border-radius:50%;animation:pp 1.5s infinite}
+@keyframes pp{0%,100%{opacity:.3;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
+#ht{position:fixed;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(14,16,24,.85);border:1px solid #222640;border-radius:12px;padding:4px 12px;font-size:8px;color:#7a7e94;z-index:10;display:flex;gap:10px}
+#ht span{display:flex;align-items:center;gap:2px}#ht i{color:#f0a030;font-size:7px}
+
+/* Floating Touch Zoom Controls */
+#touch-zoom{position:fixed;bottom:80px;right:20px;z-index:15;display:flex;flex-direction:column;gap:12px}
+.zoom-btn{width:56px;height:56px;border-radius:50%;background:rgba(14,16,24,.85);backdrop-filter:blur(10px);border:2px solid #f0a030;color:#f0a030;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;box-shadow:0 4px 15px rgba(0,0,0,.5);transition:transform .1s,background .1s}
+.zoom-btn:active{transform:scale(0.9);background:rgba(240,160,48,.3)}
+
+@media(max-width:900px){
+  #pnl{width:100%;height:50vh;top:auto;bottom:0;border-left:none;border-top:1px solid #222640}
+  #tb{right:0}
+  #lg{display:none}
+  #touch-zoom{bottom:calc(50vh + 20px);right:20px}
+  #sm{width:200px;bottom:10px;left:10px;font-size:7px}
+  #ht{display:none}
+}
+</style>
+</head>
+<body>
+<div id="lbl"></div>
+<div id="tb">
+<h1>NeuroVis 3D</h1>
+<div class="zm" id="zl">100%</div>
+<div id="bc"></div><div style="flex:1"></div><button class="vb on" id="vE">Exterior</button><button class="vb" id="vC">Cutaway</button><button class="vb" id="vX">X-Ray</button><button class="vb" id="vS">Signals</button></div>
+<div id="lg"><h5>Regions</h5><div class="li"><div class="lc" style="background:#e07a5f"></div>Frontal</div><div class="li"><div class="lc" style="background:#f2cc8f"></div>Parietal</div><div class="li"><div class="lc" style="background:#81b29a"></div>Temporal</div><div class="li"><div class="lc" style="background:#3d9b8f"></div>Occipital</div><div class="li"><div class="lc" style="background:#c4956a"></div>Cerebellum</div><div class="li"><div class="lc" style="background:#8a9ba8"></div>Brainstem</div><div class="li"><div class="lc" style="background:#d4956a"></div>Limbic</div><div class="li"><div class="lc" style="background:#7aab8e"></div>Basal Ganglia</div><div class="li"><div class="lc" style="background:#d4a05a"></div>Diencephalon</div><h5 style="margin-top:5px">Signals</h5><div class="li"><div class="lc" style="background:#ff6b35"></div>Glutamatergic</div><div class="li"><div class="lc" style="background:#00d4aa"></div>GABAergic</div><div class="li"><div class="lc" style="background:#ffd700"></div>Dopaminergic</div><div class="li"><div class="lc" style="background:#4ecdc4"></div>Serotonergic</div><div class="li"><div class="lc" style="background:#ff69b4"></div>Cholinergic</div><div class="li"><div class="lc" style="background:#87ceeb"></div>Noradrenergic</div></div>
+<div id="pnl"><div id="tgP"><i class="fas fa-chevron-right"></i></div><div class="hd"><h2 id="pt2">Human Brain</h2><div class="sb" id="psb">Click/Tap any region to explore</div></div><div id="pc2"><div class="sc"><h3><i class="fas fa-info-circle"></i> Overview</h3><p class="tx" id="pov">Click any brain region to fly to it. Zoom to see sub-parts. Toggle Signals to see colored signal flow. Use buttons or pinch to zoom.</p></div><div class="sc" id="sN" style="display:none"><button class="bb" id="bk"><i class="fas fa-arrow-left"></i> Back</button></div><div class="sc"><h3><i class="fas fa-sitemap"></i> Sub-Regions</h3><div id="pch"></div></div><div class="sc" id="sD" style="display:none"><h3><i class="fas fa-microscope"></i> Details</h3><div class="gd" id="pdg"></div></div><div class="sc" id="sF" style="display:none"><h3><i class="fas fa-cogs"></i> Function</h3><p class="tx" id="pfn"></p></div><div class="sc" id="sW" style="display:none"><h3><i class="fas fa-wave-square"></i> Brain Waves Originating</h3><div id="pwv"></div></div><div class="sc" id="sA" style="display:none"><h3><i class="fas fa-atom"></i> Neural Activity</h3><div id="pne"></div></div><div class="sc" id="sS" style="display:none"><h3><i class="fas fa-bolt"></i> Signal Origination & Consumption</h3><div id="psg"></div></div><div class="sc" id="sC" style="display:none"><h3><i class="fas fa-project-diagram"></i> Connections</h3><div id="pcn"></div></div></div></div>
+<div id="sm"><h4><i class="fas fa-satellite-dish"></i> Live Signals</h4><div id="sgL"></div></div>
+
+<div id="touch-zoom">
+  <button class="zoom-btn" id="tzI">+</button>
+  <button class="zoom-btn" id="tzO">−</button>
+</div>
+
+<div id="ht"><span><i class="fas fa-mouse"></i> Rotate</span><span><i class="fas fa-search-plus"></i> Scroll/Pinch Zoom</span><span><i class="fas fa-hand-pointer"></i> Click Fly-to</span><span><i class="fas fa-arrows-alt"></i> Right/2-Finger Pan</span></div>
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import*as THREE from'three';import{OrbitControls}from'three/addons/controls/OrbitControls.js';
+
+const h3=(x,y,z)=>{let n=Math.sin(x*127.1+y*311.7+z*74.7)*43758.5453;return n-Math.floor(n)};
+const sm=t=>t*t*(3-2*t);
+const n3=(x,y,z)=>{const ix=Math.floor(x),iy=Math.floor(y),iz=Math.floor(z),fx=sm(x-ix),fy=sm(y-iy),fz=sm(z-iz);const a=h3(ix,iy,iz),b=h3(ix+1,iy,iz),c=h3(ix,iy+1,iz),d=h3(ix+1,iy+1,iz),e=h3(ix,iy,iz+1),f=h3(ix+1,iy,iz+1),g=h3(ix,iy+1,iz+1),hh=h3(ix+1,iy+1,iz+1);const l1=a+(b-a)*fx,l2=c+(d-c)*fx,l3=e+(f-e)*fx,l4=g+(hh-g)*fx;return l1+(l2-l1)*fy+(l3+(l4-l3)*fy-(l1+(l2-l1)*fy))*fz};
+const fbm=(x,y,z,o=4)=>{let v=0,a=.5,ff=1;for(let i=0;i<o;i++){v+=a*n3(x*ff,y*ff,z*ff);a*=.5;ff*=2}return v};
+
+const D={};
+function add(id,nm,pr,lv,pos,col,fn,nr,an,ap,wv,so,si,cn,ch){
+D[id]={id,nm,pr,lv,pos,col,fn,nr,an,ap,wv,so,si,cn,ch}}
+
+add('brain','Human Brain',null,0,[0,.1,0],'#b8a088','Central organ of nervous system. ~86B neurons controlling thought, memory, emotion, movement, vision, breathing. Consumes 20% body energy.','86 billion','16 billion','18.6',
+[{t:'Delta',f:'0.5-4 Hz',o:'Thalamus, medulla',c:'#4a6fa5',fn:'Deep sleep, healing',cs:'Cortex, Hippocampus'},{t:'Theta',f:'4-8 Hz',o:'Hippocampus',c:'#6a8caf',fn:'Memory, meditation',cs:'PFC, Entorhinal'},{t:'Alpha',f:'8-13 Hz',o:'Occipital cortex',c:'#8ab0d0',fn:'Relaxation, inhibition',cs:'Motor, Sensory'},{t:'Beta',f:'13-30 Hz',o:'Frontal lobe',c:'#d4a05a',fn:'Active thinking, focus',cs:'PFC, Somatosensory'},{t:'Gamma',f:'30-100 Hz',o:'Widespread cortical',c:'#f5a623',fn:'Cognition, binding, consciousness',cs:'Visual, PFC, Hippocampus'}],
+[],[],[],['cerebrum','cerebellum','brainstem','diencephalon','limbicSys','basalGanglia']);
+
+add('cerebrum','Cerebrum','brain',1,[0,.2,.1],'#c9a0a0','Largest brain part. Two hemispheres connected by corpus callosum. Thought, reasoning, memory, language, sensory processing, voluntary movement. 6-layered cortex 2-4mm thick.','16 billion','6 billion','37.5',
+[{t:'Beta',f:'13-30 Hz',o:'Layers II-III',c:'#d4a05a',fn:'Active cognitive processing',cs:'PFC, Motor cortex'},{t:'Gamma',f:'30-100 Hz',o:'Layers III-IV',c:'#f5a623',fn:'Feature binding, perception',cs:'Visual, Temporal, Parietal'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Thalamus',ds:'Excitatory sensory/motor output'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Brainstem',ds:'Corticospinal voluntary motor'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Cerebellum',ds:'Motor plan copies for correction'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Basal Ganglia',ds:'Corticostriatal action selection'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus',ds:'Sensory relay input'},{tp:'Cholinergic',cl:'#ff69b4',fr:'Basal forebrain',ds:'Arousal and attention'},{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA/SN',ds:'Reward and motivation'},{tp:'Serotonergic',cl:'#4ecdc4',fr:'Raphe',ds:'Mood and sleep'},{tp:'Noradrenergic',cl:'#87ceeb',fr:'Locus Coeruleus',ds:'Arousal and attention'}],
+[{t:'cerebellum',tp:'Glutamatergic',s:'Motor coordination',c:'#ff6b35'},{t:'brainstem',tp:'Glutamatergic',s:'Motor/sensory relay',c:'#ff6b35'},{t:'diencephalon',tp:'Glutamatergic',s:'Sensory processing',c:'#ff6b35'}],
+['frontalLobe','parietalLobe','temporalLobe','occipitalLobe']);
+
+add('frontalLobe','Frontal Lobe','cerebrum',2,[0,.35,.6],'#e07a5f','Largest lobe (41% cortex). Executive functions: planning, decision-making, problem-solving. Motor control, speech (Broca\'s), personality, working memory, attention, social behavior.','4.5 billion','2.2 billion','48.8',
+[{t:'Beta',f:'13-30 Hz',o:'PFC',c:'#d4a05a',fn:'Active thinking, focused attention',cs:'Motor, Basal ganglia, Parietal'},{t:'Gamma',f:'30-100 Hz',o:'PFC layers III-IV',c:'#f5a623',fn:'Working memory, integration',cs:'dlPFC, ACC'},{t:'Theta',f:'4-8 Hz',o:'Medial PFC',c:'#6a8caf',fn:'Memory retrieval, creativity',cs:'Hippocampus, ACC'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Parietal Lobe',ds:'Motor-sensory integration'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Temporal Lobe',ds:'Language and memory'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Basal Ganglia',ds:'Movement initiation'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Limbic System',ds:'Emotional regulation'},{tp:'GABAergic',cl:'#00d4aa',tg:'Thalamus',ds:'Top-down inhibition'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Brainstem',ds:'Corticospinal motor'}],
+[{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Reward prediction, motivation'},{tp:'Noradrenergic',cl:'#87ceeb',fr:'Locus Coeruleus',ds:'Arousal, focused attention'},{tp:'Serotonergic',cl:'#4ecdc4',fr:'Raphe',ds:'Mood, impulse control'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus',ds:'Sensory relay'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Parietal',ds:'Sensory feedback'}],
+[{t:'parietalLobe',tp:'Glutamatergic',s:'Motor-sensory',c:'#ff6b35'},{t:'temporalLobe',tp:'Glutamatergic',s:'Language',c:'#ff6b35'},{t:'basalGanglia',tp:'Glutamatergic',s:'Movement initiation',c:'#ff6b35'},{t:'limbicSys',tp:'Glutamatergic',s:'Emotion regulation',c:'#ff6b35'}],
+['prefrontalCortex','motorCortex','brocaArea','anteriorCingulate','orbitofrontalCortex','suppMotorArea']);
+
+add('prefrontalCortex','Prefrontal Cortex','frontalLobe',3,[0,.5,.82],'#e8967d','CEO of brain. Executive functions: planning, personality, decisions, social behavior, impulse control, working memory. dlPFC=cognitive; vmPFC=emotions; OFC=reward.','1.2 billion','600 million','50',
+[{t:'Beta',f:'13-30 Hz',o:'dlPFC',c:'#d4a05a',fn:'Working memory, cognitive control',cs:'Motor cortex, Parietal'},{t:'Gamma',f:'30-100 Hz',o:'PFC II/III',c:'#f5a623',fn:'Rule-based reasoning',cs:'ACC, dlPFC'},{t:'Theta',f:'4-8 Hz',o:'Medial PFC',c:'#6a8caf',fn:'Memory coordination with hippocampus',cs:'Hippocampus, ACC'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Motor Cortex',ds:'Motor plan commands'},{tp:'GABAergic',cl:'#00d4aa',tg:'Amygdala',ds:'Top-down fear inhibition'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Basal Ganglia',ds:'Action selection, reward'}],
+[{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Working memory gating, reward'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus (MD)',ds:'Sensory/motor relay'},{tp:'Noradrenergic',cl:'#87ceeb',fr:'Locus Coeruleus',ds:'Attention, arousal'}],
+[{t:'motorCortex',tp:'Glutamatergic',s:'Motor plans',c:'#ff6b35'},{t:'limbicSys',tp:'GABAergic',s:'Emotional control',c:'#00d4aa'}],
+['dlPFC','vmPFC','dACC']);
+
+add('dlPFC','Dorsolateral PFC','prefrontalCortex',4,[-.4,.55,.82],'#eaa08d','Core executive control. Working memory, cognitive flexibility, planning, abstract reasoning, inhibition of inappropriate responses. Consumes beta/gamma for active processing.','400 million','220 million','55',
+[{t:'Beta',f:'13-30 Hz',o:'dlPFC II-III',c:'#d4a05a',fn:'Working memory maintenance',cs:'Motor, Parietal'},{t:'Gamma',f:'30-100 Hz',o:'dlPFC III-IV',c:'#f5a623',fn:'Information integration',cs:'ACC, local circuits'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Parietal',ds:'Spatial working memory'},{tp:'GABAergic',cl:'#00d4aa',tg:'vmPFC',ds:'Inhibitory control over emotion'}],
+[{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'D1/D2 gating for WM'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus',ds:'Filtered sensory input'}],
+[],[]);
+
+add('vmPFC','Ventromedial PFC','prefrontalCortex',4,[0,.6,.78],'#eab0a0','Integrates emotional and cognitive info for decision-making. Processes risk and fear. Damage = impaired judgment.','200 million','90 million','45',
+[{t:'Theta',f:'4-8 Hz',o:'vmPFC',c:'#6a8caf',fn:'Value-based decisions',cs:'Hippocampus, OFC'},{t:'Alpha',f:'8-13 Hz',o:'vmPFC',c:'#8ab0d0',fn:'Amygdala inhibition',cs:'Amygdala'}],
+[{tp:'GABAergic',cl:'#00d4aa',tg:'Amygdala',ds:'Top-down fear extinction'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'dlPFC',ds:'Emotional context for decisions'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Amygdala',ds:'Emotional valence'},{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Reward prediction errors'}],
+[],[]);
+
+add('dACC','Dorsal Anterior Cingulate','prefrontalCortex',4,[0,.55,.55],'#eaa898','Monitors conflict, errors, pain. Signals dlPFC to increase cognitive control. Critical for error detection and conflict resolution.','150 million','80 million','53',
+[{t:'Theta',f:'4-8 Hz',o:'dACC',c:'#6a8caf',fn:'Error/conflict monitoring',cs:'dlPFC, Insula'},{t:'Gamma',f:'30-100 Hz',o:'dACC',c:'#f5a623',fn:'Conflict resolution',cs:'dlPFC, Motor'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'dlPFC',ds:'Conflict signal for control boost'}],
+[{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Prediction error signals'}],
+[],[]);
+
+add('motorCortex','Primary Motor Cortex (M1)','frontalLobe',3,[0,.65,.38],'#d4705a','Generates voluntary muscle impulses. Motor homunculus. Betz cells in layer V are largest brain neurons. Corticospinal tract to spinal cord.','600 million','250 million','41.6',
+[{t:'Beta',f:'13-30 Hz',o:'M1 layer V',c:'#d4a05a',fn:'Motor state maintenance',cs:'Spinal cord, Basal ganglia'},{t:'Gamma',f:'30-100 Hz',o:'M1 II-III',c:'#f5a623',fn:'Movement execution',cs:'Spinal motor neurons, Cerebellum'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Brainstem/Spinal Cord',ds:'Corticospinal voluntary motor commands'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Cerebellum',ds:'Motor error correction'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Basal Ganglia',ds:'Movement initiation'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Premotor/SMA',ds:'Motor plans'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus (VL)',ds:'Cerebellar feedback'},{tp:'Dopaminergic',cl:'#ffd700',fr:'Substantia Nigra',ds:'Movement facilitation'}],
+[{t:'brainstem',tp:'Glutamatergic',s:'Corticospinal',c:'#ff6b35'},{t:'cerebellum',tp:'Glutamatergic',s:'Error correction',c:'#ff6b35'}],[]);
+
+add('brocaArea',"Broca's Area",'frontalLobe',3,[-.45,.32,.5],'#d4805a','Speech production. Articulation, fluency, grammar. Left dominant. Arcuate fasciculus to Wernicke\'s. Damage = Broca\'s aphasia.','100 million','55 million','55',
+[{t:'Beta',f:'13-30 Hz',o:'BA 44/45',c:'#d4a05a',fn:'Speech motor planning',cs:'Motor cortex, SMA'},{t:'Gamma',f:'30-100 Hz',o:'BA 44',c:'#f5a623',fn:'Syntactic processing',cs:'SMA, Motor cortex'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Motor Cortex',ds:'Articulatory commands'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Wernicke\'s Area',ds:'Arcuate fasciculus language loop'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Wernicke\'s',ds:'Comprehended language'},{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Language fluency'}],
+[{t:'temporalLobe',tp:'Glutamatergic',s:'Arcuate fasciculus',c:'#ff6b35'}],[]);
+
+add('anteriorCingulate','Anterior Cingulate (ACC)','frontalLobe',3,[0,.48,.5],'#d0785a','Error detection, conflict monitoring, pain processing, autonomic regulation. Bridges cognitive and emotional processing.','150 million','75 million','50',
+[{t:'Theta',f:'4-8 Hz',o:'ACC',c:'#6a8caf',fn:'Error/conflict monitoring',cs:'dlPFC, Insula'},{t:'Gamma',f:'30-100 Hz',o:'ACC',c:'#f5a623',fn:'Cognitive control allocation',cs:'PFC, Motor'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'PFC',ds:'Conflict/error signals'},{tp:'GABAergic',cl:'#00d4aa',tg:'Amygdala',ds:'Emotional regulation'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'PFC',ds:'Control signals'}],
+[],[]);
+
+add('orbitofrontalCortex','Orbitofrontal Cortex','frontalLobe',3,[0,.22,.78],'#d89070','Evaluates rewards/punishments. Guides decisions based on expected outcomes. Damage = disinhibition, impulsivity.','200 million','100 million','50',
+[{t:'Theta',f:'4-8 Hz',o:'OFC',c:'#6a8caf',fn:'Reward value assessment',cs:'Striatum, vmPFC'},{t:'Alpha',f:'8-13 Hz',o:'OFC',c:'#8ab0d0',fn:'Inhibit irrelevant rewards',cs:'Amygdala, Striatum'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Basal Ganglia',ds:'Reward prediction error'},{tp:'Glutamatergic/GABAergic',cl:'#ff6b35',tg:'Amygdala',ds:'Reward/punishment evaluation'}],
+[{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Reward prediction errors'},{tp:'Serotonergic',cl:'#4ecdc4',fr:'Raphe',ds:'Impulse control'}],
+[],[]);
+
+add('suppMotorArea','Supplementary Motor Area','frontalLobe',3,[0,.68,.32],'#cc6e58','Plans complex motor sequences, especially bilateral. Pre-SMA: cognitive planning; proper SMA: execution.','200 million','90 million','45',
+[{t:'Beta',f:'13-30 Hz',o:'SMA',c:'#d4a05a',fn:'Motor sequence planning',cs:'M1, Cerebellum'},{t:'Gamma',f:'30-100 Hz',o:'Pre-SMA',c:'#f5a623',fn:'Motor sequence initiation',cs:'M1, Basal ganglia'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Motor Cortex',ds:'Motor plan transmission'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Cerebellum',ds:'Motor timing'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'PFC',ds:'Action goals'},{tp:'Dopaminergic',cl:'#ffd700',fr:'Basal Ganglia',ds:'Action selection'}],
+[],[]);
+
+add('parietalLobe','Parietal Lobe','cerebrum',2,[0,.55,-.12],'#f2cc8f','Integrates sensory info: touch, pressure, temperature, pain, proprioception. Somatosensory homunculus. Spatial navigation, reasoning, body image, attention.','3.5 billion','1.6 billion','45.7',
+[{t:'Alpha',f:'8-13 Hz',o:'Parietal cortex',c:'#8ab0d0',fn:'Sensory inhibition, attention gating',cs:'Sensory, Motor'},{t:'Beta',f:'13-30 Hz',o:'Somatosensory',c:'#d4a05a',fn:'Active tactile processing',cs:'Motor, Frontal'},{t:'Gamma',f:'30-100 Hz',o:'Posterior parietal',c:'#f5a623',fn:'Multisensory integration',cs:'Frontal, Temporal'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Frontal Lobe',ds:'Sensorimotor integration'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Temporal Lobe',ds:'Object/spatial memory'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus (VPL)',ds:'Body sensory relay'},{tp:'Noradrenergic',cl:'#87ceeb',fr:'Locus Coeruleus',ds:'Spatial attention'}],
+[{t:'frontalLobe',tp:'Glutamatergic',s:'Sensorimotor',c:'#ff6b35'}],
+['somatosensoryCortex','posteriorParietal','precuneus']);
+
+add('somatosensoryCortex','Primary Somatosensory (S1)','parietalLobe',3,[0,.7,.02],'#f2d8a0','Processes touch, pressure, temperature, pain, proprioception from contralateral body. Sensory homunculus.','800 million','350 million','43.7',
+[{t:'Beta',f:'13-30 Hz',o:'S1 II-III',c:'#d4a05a',fn:'Tactile discrimination',cs:'Motor, Posterior parietal'},{t:'Gamma',f:'30-100 Hz',o:'S1 IV',c:'#f5a623',fn:'Precise sensory extraction',cs:'S2, Motor'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Motor Cortex',ds:'Sensory feedback for motor'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Posterior Parietal',ds:'Spatial body representation'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus (VPL)',ds:'Body sensory from spinal cord'}],
+[],[]);
+
+add('posteriorParietal','Posterior Parietal Cortex','parietalLobe',3,[-.4,.55,-.22],'#f0c880','Multisensory integration. Spatial attention, visual-motor transformation. Right=spatial; Left=praxis.','500 million','230 million','46',
+[{t:'Alpha',f:'8-13 Hz',o:'PPC',c:'#8ab0d0',fn:'Attention gating',cs:'Sensory cortex'},{t:'Gamma',f:'30-100 Hz',o:'IPS',c:'#f5a623',fn:'Visuomotor transformation',cs:'Motor, FEF'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Motor Cortex',ds:'Reaching/grasping plans'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Occipital',ds:'Visual spatial'},{tp:'Noradrenergic',cl:'#87ceeb',fr:'LC',ds:'Spatial attention'}],
+[],[]);
+
+add('precuneus','Precuneus','parietalLobe',3,[0,.65,-.32],'#ecc570','Default mode network hub. Self-referential processing, episodic memory, mental imagery, consciousness.','300 million','150 million','50',
+[{t:'Alpha',f:'8-13 Hz',o:'Precuneus',c:'#8ab0d0',fn:'Default mode resting',cs:'Post. cingulate, Medial PFC'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Medial PFC',ds:'Self-referential thinking'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Hippocampus',ds:'Memory retrieval'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Hippocampus',ds:'Retrieved memories'}],
+[],[]);
+
+add('temporalLobe','Temporal Lobe','cerebrum',2,[-.6,-.05,.08],'#81b29a','Auditory processing, language comprehension, visual object recognition, memory formation, emotional responses. Contains hippocampus and amygdala.','3 billion','1.3 billion','43.3',
+[{t:'Alpha',f:'8-13 Hz',o:'Superior temporal',c:'#8ab0d0',fn:'Auditory attention gating',cs:'Auditory, PFC'},{t:'Theta',f:'4-8 Hz',o:'Medial temporal',c:'#6a8caf',fn:'Memory encoding/retrieval',cs:'Hippocampus, PFC'},{t:'Gamma',f:'30-100 Hz',o:'Temporal association',c:'#f5a623',fn:'Language comprehension',cs:'Wernicke\'s, Fusiform'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Frontal Lobe',ds:'Language loop'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Limbic System',ds:'Memory encoding, emotional tagging'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus (MGN)',ds:'Auditory relay'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Occipital',ds:'Ventral stream input'}],
+[{t:'frontalLobe',tp:'Glutamatergic',s:'Language loop',c:'#ff6b35'}],
+['auditoryCortex','wernickeArea','fusiformGyrus','parahippocampal']);
+
+add('auditoryCortex','Primary Auditory (A1)','temporalLobe',3,[-.55,.04,.02],'#91c2a8','Processes pitch, loudness, timing, sound location. Tonotopic map.','400 million','180 million','45',
+[{t:'Gamma',f:'30-100 Hz',o:'A1 IV',c:'#f5a623',fn:'Temporal sound processing',cs:'Wernicke\'s, Secondary auditory'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Wernicke\'s Area',ds:'Processed speech sounds'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Frontal Lobe',ds:'Auditory attention'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus (MGN)',ds:'Raw auditory from cochlea'}],
+[],[]);
+
+add('wernickeArea',"Wernicke's Area",'temporalLobe',3,[-.55,.1,-.08],'#8bbfa4','Language comprehension. Processes meaning of spoken/written language. Left dominant. Damage = Wernicke\'s aphasia.','150 million','80 million','53',
+[{t:'Gamma',f:'30-100 Hz',o:'BA 22',c:'#f5a623',fn:'Semantic processing',cs:'Broca\'s, PFC'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Broca\'s Area',ds:'Comprehended language via arcuate fasciculus'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Auditory Cortex',ds:'Processed speech'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Occipital',ds:'Written language'}],
+[{t:'brocaArea',tp:'Glutamatergic',s:'Arcuate fasciculus',c:'#ff6b35'}],[]);
+
+add('fusiformGyrus','Fusiform Gyrus (Face Area)','temporalLobe',3,[-.5,-.15,-.08],'#7aad92','Face recognition (FFA) and visual word form (VWFA). Expert categorization.','200 million','90 million','45',
+[{t:'Gamma',f:'30-100 Hz',o:'FFA',c:'#f5a623',fn:'Face feature binding',cs:'Amygdala, PFC'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Amygdala',ds:'Emotional face tagging'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Wernicke\'s',ds:'Written word forms'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Occipital V4',ds:'Color and form input'}],
+[],[]);
+
+add('parahippocampal','Parahippocampal Gyrus','temporalLobe',3,[-.45,-.1,-.22],'#72a588','Scene/context recognition and spatial memory. Gateway to hippocampus via perforant path.','200 million','100 million','50',
+[{t:'Theta',f:'4-8 Hz',o:'PHC',c:'#6a8caf',fn:'Memory encoding relay',cs:'Hippocampus'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Hippocampus',ds:'Perforant path - cortical input to memory'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Occipital',ds:'Visual scene analysis'}],
+[],[]);
+
+add('occipitalLobe','Occipital Lobe','cerebrum',2,[0,.15,-.68],'#3d9b8f','Visual processing center. V1: edges, orientation, color. V2-V5: motion, depth, form, faces. Dorsal stream (where/how) to parietal; Ventral stream (what) to temporal.','2.5 billion','1.2 billion','48',
+[{t:'Alpha',f:'8-13 Hz',o:'Occipital cortex',c:'#8ab0d0',fn:'Visual idling, attention modulation',cs:'Parietal, Thalamus'},{t:'Gamma',f:'30-100 Hz',o:'V1-V5',c:'#f5a623',fn:'Visual feature binding, perception',cs:'Temporal, Parietal'},{t:'Beta',f:'13-30 Hz',o:'V5/MT',c:'#d4a05a',fn:'Visual-motor, motion tracking',cs:'Motor, Parietal'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Parietal (dorsal stream)',ds:'Spatial and motion "where/how"'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Temporal (ventral stream)',ds:'Object and face "what"'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Frontal Lobe',ds:'Visual attention, eye movement'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus (LGN)',ds:'Retinal input via optic radiations'},{tp:'Cholinergic',cl:'#ff69b4',fr:'Basal forebrain',ds:'Visual attention'},{tp:'Noradrenergic',cl:'#87ceeb',fr:'LC',ds:'Arousal enhancement'}],
+[{t:'parietalLobe',tp:'Glutamatergic',s:'Dorsal stream',c:'#ff6b35'},{t:'temporalLobe',tp:'Glutamatergic',s:'Ventral stream',c:'#ff6b35'}],
+['visualCortex','v2Area','v5MT']);
+
+add('visualCortex','Primary Visual Cortex (V1)','occipitalLobe',3,[0,.2,-.78],'#4dab9f','First cortical visual stage. Retinotopic maps. Edge orientation, spatial frequency, color, disparity. Simple/complex/hypercomplex cells.','1.2 billion','600 million','50',
+[{t:'Gamma',f:'30-100 Hz',o:'V1 IV',c:'#f5a623',fn:'Feature extraction, conscious vision',cs:'V2, V5'},{t:'Alpha',f:'8-13 Hz',o:'V1 II-III',c:'#8ab0d0',fn:'Attention gating',cs:'Thalamus, V2'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'V2',ds:'Basic visual features'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'V5/MT',ds:'Motion signals'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Thalamus',ds:'Attention/prediction feedback'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Thalamus (LGN)',ds:'Retinal input'}],
+[],[]);
+
+add('v2Area','Secondary Visual Cortex (V2)','occipitalLobe',3,[0,.3,-.7],'#3d8b80','Texture, contour integration, figure-ground segregation. Thick/thin stripes and interstripes.','500 million','250 million','50',
+[{t:'Gamma',f:'30-100 Hz',o:'V2',c:'#f5a623',fn:'Contour integration',cs:'V4, V5, Temporal'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Temporal Lobe',ds:'Ventral stream form/color'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'V5/MT',ds:'Dorsal stream motion'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'V1',ds:'Basic visual features'}],
+[],[]);
+
+add('v5MT','V5/MT (Motion)','occipitalLobe',3,[.4,.15,-.62],'#2d7b70','Visual motion processing. Direction, speed, pattern of moving objects. Direction-selective columns.','100 million','55 million','55',
+[{t:'Gamma',f:'30-100 Hz',o:'MT',c:'#f5a623',fn:'Motion direction binding',cs:'Parietal, Motor'},{t:'Beta',f:'13-30 Hz',o:'MT',c:'#d4a05a',fn:'Visual-motor coordination',cs:'FEF, Motor'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Parietal',ds:'Spatial motion for navigation'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Frontal Eye Fields',ds:'Eye movement control'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'V1',ds:'Direct motion signals'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'V2',ds:'Processed motion'}],
+[],[]);
+
+add('cerebellum','Cerebellum','brain',1,[0,-.25,-.58],'#c4956a','More neurons than rest of brain combined (~69B). Coordinates voluntary movement, balance, posture, motor learning. Fine-tunes motor commands. Also cognition: language, attention, emotion.','69 billion','35 billion','50.7',
+[{t:'Beta',f:'13-30 Hz',o:'Cerebellar cortex',c:'#d4a05a',fn:'Motor coordination timing',cs:'Thalamus, Motor cortex'},{t:'Gamma',f:'30-100 Hz',o:'Cerebellar cortex',c:'#f5a623',fn:'Precise temporal coding',cs:'Deep nuclei, Olive'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Thalamus (VL)',ds:'Refined motor commands'},{tp:'GABAergic',cl:'#00d4aa',tg:'Inferior Olive',ds:'Error signal gating'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Pons',ds:'Motor plan copies'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Inferior Olive',ds:'Climbing fiber error signals'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Spinal Cord',ds:'Proprioceptive feedback'}],
+[{t:'frontalLobe',tp:'Glutamatergic',s:'Motor refinement',c:'#ff6b35'}],
+['cerebellarCortex','deepCerebellarNuclei','vermis']);
+
+add('cerebellarCortex','Cerebellar Cortex','cerebellum',3,[0,-.2,-.63],'#d4a57a','3 layers: molecular, Purkinje, granular. Purkinje cells provide sole GABAergic output to deep nuclei.','69B granule, 15M Purkinje','35 billion','50',
+[{t:'Gamma',f:'30-100 Hz',o:'Purkinje cells',c:'#f5a623',fn:'Movement correction timing',cs:'Deep nuclei'}],
+[{tp:'GABAergic',cl:'#00d4aa',tg:'Deep Cerebellar Nuclei',ds:'Inhibitory motor error correction'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Pons (mossy fibers)',ds:'Motor plan input'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Inferior Olive (climbing)',ds:'Error teaching signals'}],
+[],[]);
+
+add('deepCerebellarNuclei','Deep Cerebellar Nuclei','cerebellum',3,[0,-.28,-.55],'#b48560','Dentate, interposed, fastigial, vestibular. Transform cortical processing into motor output.','5 million','3 million','60',
+[{t:'Beta',f:'13-30 Hz',o:'Dentate',c:'#d4a05a',fn:'Motor timing output',cs:'Thalamus (VL), Motor cortex'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Thalamus (VL)',ds:'Motor correction output to cortex'}],
+[{tp:'GABAergic',cl:'#00d4aa',fr:'Purkinje cells',ds:'Inhibitory correction signals'}],
+[],[]);
+
+add('vermis','Vermis','cerebellum',3,[0,-.18,-.6],'#c49568','Medial cerebellum. Posture, locomotion, gaze. Damage = truncal ataxia.','2 billion','1 billion','50',
+[{t:'Beta',f:'13-30 Hz',o:'Vermis',c:'#d4a05a',fn:'Postural control',cs:'Fastigial, Vestibular'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Fastigial Nucleus',ds:'Medial motor control'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Vestibular system',ds:'Balance input'}],
+[],[]);
+
+add('brainstem','Brain Stem','brain',1,[0,-.5,-.18],'#8a9ba8','Vital involuntary functions: breathing, heart rate, blood pressure, sleep-wake, consciousness. Relays brain-spinal cord info. Cranial nerves III-XII. Reticular activating system.','10 million','7 million','70',
+[{t:'Delta',f:'0.5-4 Hz',o:'Medulla, pons',c:'#4a6fa5',fn:'Autonomic regulation, sleep',cs:'Cortex, Spinal cord'},{t:'Beta',f:'13-30 Hz',o:'Reticular formation',c:'#d4a05a',fn:'Arousal and attention',cs:'Thalamus, Cortex'}],
+[{tp:'Cholinergic',cl:'#ff69b4',tg:'Thalamus',ds:'Reticular activating - consciousness'},{tp:'Serotonergic',cl:'#4ecdc4',tg:'Cortex',ds:'Raphe - mood, sleep, pain'},{tp:'Noradrenergic',cl:'#87ceeb',tg:'Cortex',ds:'LC - arousal, attention, stress'},{tp:'Dopaminergic',cl:'#ffd700',tg:'Basal Ganglia/Limbic',ds:'SN/VTA - movement, reward'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Cerebrum',ds:'Motor commands'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Cerebellum',ds:'Motor coordination'}],
+[{t:'cerebrum',tp:'Cholinergic',s:'Consciousness',c:'#ff69b4'}],
+['midbrain','pons','medulla']);
+
+add('midbrain','Midbrain','brainstem',3,[0,-.38,-.18],'#9aa8b2','Substantia nigra (dopamine), superior/inferior colliculi (reflexes), red nucleus (motor), periaqueductal gray (pain).','3 million','2 million','66',
+[{t:'Gamma',f:'30-100 Hz',o:'Sup. colliculus',c:'#f5a623',fn:'Visual attention reflexes',cs:'FEF, Parietal'},{t:'Beta',f:'13-30 Hz',o:'SN',c:'#d4a05a',fn:'Dopaminergic movement',cs:'Striatum, PFC'}],
+[{tp:'Dopaminergic',cl:'#ffd700',tg:'Basal Ganglia',ds:'Nigrostriatal - movement'},{tp:'Dopaminergic',cl:'#ffd700',tg:'Limbic (NAc)',ds:'Mesolimbic - reward'},{tp:'Dopaminergic',cl:'#ffd700',tg:'PFC',ds:'Mesocortical - cognitive control'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Cortex',ds:'Motor and cognitive commands'}],
+[],
+['substantiaNigra','supColliculus']);
+
+add('substantiaNigra','Substantia Nigra','midbrain',4,[-.15,-.4,-.16],'#6a7a88','Critical dopamine producer. Pars compacta to striatum. Pars reticulata GABAergic. >60% loss = Parkinson\'s.','400,000 dopaminergic','280,000','70',
+[{t:'Beta',f:'13-30 Hz',o:'SNc',c:'#d4a05a',fn:'Movement initiation, reward prediction',cs:'Striatum, PFC'}],
+[{tp:'Dopaminergic',cl:'#ffd700',tg:'Putamen/Caudate',ds:'Nigrostriatal - movement facilitation'},{tp:'Dopaminergic',cl:'#ffd700',tg:'Nucleus Accumbens',ds:'Mesolimbic - reward'},{tp:'Dopaminergic',cl:'#ffd700',tg:'PFC',ds:'Mesocortical - WM, cognitive control'},{tp:'GABAergic',cl:'#00d4aa',tg:'Thalamus',ds:'SNr motor output gating'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Striatum',ds:'Direct/indirect pathway input'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'PFC',ds:'Cognitive drive for dopamine'}],
+[],[]);
+
+add('supColliculus','Superior Colliculus','midbrain',4,[.1,-.38,-.14],'#8a98a2','Integrates visual, auditory, somatosensory for orienting. Saccadic eye movements.','500,000','350,000','70',
+[{t:'Gamma',f:'30-100 Hz',o:'Superficial',c:'#f5a623',fn:'Visual orienting reflex',cs:'FEF, Brainstem gaze'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Frontal Eye Fields',ds:'Saccadic eye movement commands'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Occipital',ds:'Visual input'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Parietal',ds:'Spatial attention'}],
+[],[]);
+
+add('pons','Pons','brainstem',3,[0,-.5,-.22],'#7a8b98','Bridge between cerebrum and cerebellum. Cranial nerves V-VIII. Reticular formation, LC, raphe.','5 million','3.5 million','70',
+[{t:'Delta',f:'0.5-4 Hz',o:'Raphe',c:'#4a6fa5',fn:'Sleep regulation, serotonin',cs:'Cortex, Spinal cord'},{t:'Theta',f:'4-8 Hz',o:'LC',c:'#6a8caf',fn:'Arousal, attention',cs:'Cortex, Hippocampus'}],
+[{tp:'Serotonergic',cl:'#4ecdc4',tg:'Cortex',ds:'Raphe-cortical - mood, sleep, pain'},{tp:'Noradrenergic',cl:'#87ceeb',tg:'Cortex',ds:'LC - arousal, attention, stress'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Cerebellum',ds:'Pontocerebellar motor relay'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Cerebrum',ds:'Corticopontine commands'}],
+[],
+['locusCoeruleus','rapheNuclei']);
+
+add('locusCoeruleus','Locus Coeruleus','pons',4,[-.08,-.48,-.2],'#5a6b78','Primary norepinephrine source. ~45,000 neurons projecting to 100,000+ targets each. Arousal, attention, stress, fight-or-flight.','45,000','30,000','66',
+[{t:'Beta',f:'13-30 Hz',o:'LC phasic',c:'#d4a05a',fn:'Focused attention',cs:'PFC, Parietal'},{t:'Theta',f:'4-8 Hz',o:'LC tonic',c:'#6a8caf',fn:'Vigilance, arousal',cs:'Cortex, Hippocampus'}],
+[{tp:'Noradrenergic',cl:'#87ceeb',tg:'PFC',ds:'Attention enhancement, WM boost'},{tp:'Noradrenergic',cl:'#87ceeb',tg:'Amygdala',ds:'Stress/fear amplification'},{tp:'Noradrenergic',cl:'#87ceeb',tg:'Hippocampus',ds:'Memory consolidation'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Hypothalamus',ds:'Stress trigger'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'ACC',ds:'Conflict/error signals'}],
+[],[]);
+
+add('rapheNuclei','Raphe Nuclei','pons',4,[0,-.52,-.24],'#4a5b68','Primary serotonin source. Regulates mood, sleep, appetite, pain, cognition. Target of SSRIs.','300,000 serotonergic','200,000','66',
+[{t:'Delta',f:'0.5-4 Hz',o:'Raphe slow',c:'#4a6fa5',fn:'Deep sleep promotion',cs:'Cortex, Hypothalamus'},{t:'Alpha',f:'8-13 Hz',o:'Raphe moderate',c:'#8ab0d0',fn:'Relaxed waking, mood',cs:'Cortex, Amygdala'}],
+[{tp:'Serotonergic',cl:'#4ecdc4',tg:'PFC',ds:'Mood regulation, cognitive flexibility'},{tp:'Serotonergic',cl:'#4ecdc4',tg:'Amygdala',ds:'Anxiety control'},{tp:'Serotonergic',cl:'#4ecdc4',tg:'Basal Ganglia',ds:'Impulse control'},{tp:'Serotonergic',cl:'#4ecdc4',tg:'Hypothalamus',ds:'Sleep-wake, appetite'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Hypothalamus',ds:'Circadian signals'}],
+[],[]);
+
+add('medulla','Medulla Oblongata','brainstem',3,[0,-.65,-.18],'#6a7b88','Controls breathing, heart rate, blood pressure, vomiting, coughing, swallowing. Pyramidal decussation.','2 million','1.5 million','75',
+[{t:'Delta',f:'0.5-4 Hz',o:'Respiratory center',c:'#4a6fa5',fn:'Breathing rhythm generation',cs:'Spinal cord (diaphragm)'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Spinal Cord',ds:'Pyramidal tract motor commands'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Cerebellum (inferior olive)',ds:'Climbing fiber error teaching'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Cerebrum',ds:'Motor commands'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Hypothalamus',ds:'Autonomic control'}],
+[],[]);
+
+add('diencephalon','Diencephalon','brain',1,[0,.05,-.08],'#d4a05a','Central relay station. Thalamus: sensory/motor relay, consciousness. Hypothalamus: homeostasis, hormones. All sensory info (except smell) through thalamus.','10 million','7 million','70',
+[{t:'Alpha',f:'8-13 Hz',o:'Thalamic reticular n.',c:'#8ab0d0',fn:'Sensory gating, consciousness',cs:'Cortex, Reticular formation'},{t:'Delta',f:'0.5-4 Hz',o:'Intralaminar nuclei',c:'#4a6fa5',fn:'Sleep spindle generation',cs:'Cortex, Hippocampus'},{t:'Gamma',f:'30-100 Hz',o:'Specific nuclei',c:'#f5a623',fn:'Sensory relay processing',cs:'All sensory cortices'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Cortex (all lobes)',ds:'Sensory relay - all sensation except olfaction'},{tp:'GABAergic',cl:'#00d4aa',tg:'Cortex (reticular n.)',ds:'Sensory gating and attention filtering'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Retina',ds:'Visual input to LGN'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Cochlea',ds:'Auditory to MGN'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Spinal cord',ds:'Body sensation to VPL'},{tp:'Cholinergic',cl:'#ff69b4',fr:'Brainstem',ds:'Consciousness drive'}],
+[{t:'cerebrum',tp:'Glutamatergic',s:'Sensory relay',c:'#ff6b35'}],
+['thalamus','hypothalamus']);
+
+add('thalamus','Thalamus','diencephalon',3,[-.12,.05,-.05],'#e0b060','Brain\'s switchboard. Relays all sensory info (except olfaction) to cortex. 50+ nuclei: VPL (body), VPM (face), LGN (vision), MGN (auditory). Critical for consciousness.','10 million','7 million','70',
+[{t:'Alpha',f:'8-13 Hz',o:'Reticular nucleus',c:'#8ab0d0',fn:'Sensory gating',cs:'Cortex, Basal ganglia'},{t:'Gamma',f:'30-100 Hz',o:'Specific nuclei',c:'#f5a623',fn:'Sensory relay',cs:'Occipital, Temporal, Parietal'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Frontal (MD n.)',ds:'Prefrontal relay'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Occipital (LGN)',ds:'Visual relay to V1'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Parietal (VPL/VPM)',ds:'Somatosensory relay'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Temporal (MGN)',ds:'Auditory relay to A1'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Retina',ds:'Visual input to LGN'},{tp:'Cholinergic',cl:'#ff69b4',fr:'Brainstem',ds:'Consciousness drive'}],
+[],[]);
+
+add('hypothalamus','Hypothalamus','diencephalon',3,[-.05,-.08,-.02],'#c09040','Master homeostasis regulator. Body temp, hunger, thirst, sleep, circadian, autonomic NS, pituitary (hormones), stress. Tiny but critical.','100,000','80,000','80',
+[{t:'Delta',f:'0.5-4 Hz',o:'VLPO',c:'#4a6fa5',fn:'Sleep induction',cs:'Reticular formation, Pineal'},{t:'Beta',f:'13-30 Hz',o:'SCN',c:'#d4a05a',fn:'Circadian rhythm',cs:'Pineal, Cortex'}],
+[{tp:'Glutamatergic/GABAergic',cl:'#ff6b35',tg:'Pituitary',ds:'Hormone release control'},{tp:'Glutamatergic/GABAergic',cl:'#ff6b35',tg:'Brainstem',ds:'Autonomic control'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Limbic System',ds:'Emotional-autonomic integration'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Limbic',ds:'Emotional state'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Retina',ds:'Light for circadian'}],
+[],[]);
+
+add('limbicSys','Limbic System','brain',1,[0,.05,.15],'#d4956a','Emotional and memory center. Hippocampus (memory), amygdala (fear/emotion), cingulate, fornix, mammillary bodies.','2 billion','1.1 billion','55',
+[{t:'Theta',f:'4-8 Hz',o:'Hippocampus',c:'#6a8caf',fn:'Memory encoding, spatial navigation',cs:'PFC, Entorhinal'},{t:'Alpha',f:'8-13 Hz',o:'Amygdala',c:'#8ab0d0',fn:'Emotional regulation',cs:'PFC, Hypothalamus'},{t:'Gamma',f:'30-100 Hz',o:'Hippo-amygdala',c:'#f5a623',fn:'Emotional memory consolidation',cs:'PFC, Cortex'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'PFC',ds:'Emotional context and memory for decisions'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Hypothalamus',ds:'Emotional-autonomic (fight/flight)'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Temporal Lobe',ds:'Sensory-emotional tagging'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Temporal Lobe',ds:'Sensory evaluation'},{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Reward and motivation'},{tp:'Noradrenergic',cl:'#87ceeb',fr:'LC',ds:'Stress/fear amplification'},{tp:'Serotonergic',cl:'#4ecdc4',fr:'Raphe',ds:'Mood regulation'}],
+[{t:'frontalLobe',tp:'Glutamatergic',s:'Emotion regulation',c:'#ff6b35'}],
+['hippocampus','amygdala','cingulateGyrus','fornix']);
+
+add('hippocampus','Hippocampus','limbicSys',3,[-.25,-.02,.08],'#e4a570','Critical for episodic/spatial memory. Place cells. CA1-CA3 trisynaptic circuit. Theta for encoding; sharp-wave ripples for sleep consolidation.','15 million','9 million','60',
+[{t:'Theta',f:'4-8 Hz',o:'CA1-CA3',c:'#6a8caf',fn:'Memory encoding, spatial navigation',cs:'PFC, Entorhinal'},{t:'Gamma',f:'30-100 Hz',o:'CA3-CA1',c:'#f5a623',fn:'Memory recall, pattern completion',cs:'PFC, Entorhinal'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'PFC',ds:'Memory traces for WM and decisions'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Mammillary Bodies',ds:'Memory relay (Papez circuit)'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Amygdala',ds:'Emotional memory tagging'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Entorhinal',ds:'Cortical sensory (perforant path)'},{tp:'Acetylcholine',cl:'#ff69b4',fr:'Medial Septum',ds:'Theta rhythm generation'}],
+[{t:'diencephalon',tp:'Glutamatergic',s:'Fornix',c:'#ff6b35'}],
+['ca1','ca3','dentateGyrus']);
+
+add('ca1','CA1','hippocampus',4,[-.22,-.05,.06],'#eab580','Final trisynaptic stage. Memory output and consolidation. Vulnerable to Alzheimer\'s. Theta-phase precession.','5 million','3 million','60',
+[{t:'Theta',f:'4-8 Hz',o:'CA1 pyramidal',c:'#6a8caf',fn:'Sequential memory encoding',cs:'Subiculum, Entorhinal'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Entorhinal Cortex',ds:'Memory consolidation output'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'CA3 (Schaffer collaterals)',ds:'Pattern-completed retrieval'}],
+[],[]);
+
+add('ca3','CA3','hippocampus',4,[-.28,-.02,.1],'#e0a060','Autoassociative network. Pattern completion via recurrent connections. Retrieves complete memories from partial cues.','3 million','1.8 million','60',
+[{t:'Theta',f:'4-8 Hz',o:'CA3',c:'#6a8caf',fn:'Pattern completion',cs:'CA1'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'CA1 (Schaffer collaterals)',ds:'Pattern-completed memory signals'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Dentate Gyrus (mossy fibers)',ds:'Pattern-separated input'}],
+[],[]);
+
+add('dentateGyrus','Dentate Gyrus','hippocampus',4,[-.3,.02,.12],'#d89558','Gateway to hippocampus. Pattern separation. Adult neurogenesis occurs here.','1 million granule','600,000','60',
+[{t:'Theta',f:'4-8 Hz',o:'Granule cells',c:'#6a8caf',fn:'Pattern separation for encoding',cs:'CA3'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'CA3 (mossy fibers)',ds:'Pattern-separated input for distinct encoding'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Entorhinal (perforant path)',ds:'Cortical sensory input'}],
+[],[]);
+
+add('amygdala','Amygdala','limbicSys',3,[-.35,-.02,.18],'#c47550','Emotional processing center, especially fear/threat. Basolateral: emotional learning. Central nucleus: fear responses (freezing, heart rate, sweating). Overactive in anxiety, PTSD.','3 million','2 million','66',
+[{t:'Theta',f:'4-8 Hz',o:'Basolateral',c:'#6a8caf',fn:'Fear memory formation',cs:'Hippocampus, PFC'},{t:'Gamma',f:'30-100 Hz',o:'Central nucleus',c:'#f5a623',fn:'Threat response coordination',cs:'Brainstem, Hypothalamus'},{t:'Alpha',f:'8-13 Hz',o:'Basolateral',c:'#8ab0d0',fn:'Emotional regulation (PFC top-down)',cs:'PFC, Hippocampus'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Hypothalamus',ds:'Stress hormone release (cortisol, adrenaline)'},{tp:'Glutamatergic/GABAergic',cl:'#ff6b35',tg:'Brainstem',ds:'Fear responses: freezing, HR, sweating'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Hippocampus',ds:'Emotional memory tagging'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'PFC',ds:'Emotional state for decisions'}],
+[{tp:'GABAergic',cl:'#00d4aa',fr:'vmPFC',ds:'Fear extinction, emotional inhibition'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Sensory Cortex',ds:'Threat-related sensory'},{tp:'Noradrenergic',cl:'#87ceeb',fr:'LC',ds:'Stress amplification'},{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Reward emotional learning'}],
+[],[]);
+
+add('cingulateGyrus','Cingulate Gyrus','limbicSys',3,[0,.4,.3],'#d49060','Anterior: emotion, decision-making, empathy, pain. Posterior: default mode, episodic memory.','500 million','250 million','50',
+[{t:'Theta',f:'4-8 Hz',o:'Anterior',c:'#6a8caf',fn:'Error monitoring',cs:'PFC, Insula'},{t:'Alpha',f:'8-13 Hz',o:'Posterior',c:'#8ab0d0',fn:'Default mode',cs:'Precuneus, Medial PFC'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'PFC',ds:'Cognitive-emotional integration'},{tp:'Glutamatergic',cl:'#ff6b35',tg:'Hippocampus',ds:'Memory retrieval cues'}],
+[{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Reward/prediction error'}],
+[],[]);
+
+add('fornix','Fornix','limbicSys',3,[0,.1,.05],'#b47550','Major white matter tract: hippocampus to mammillary bodies, anterior thalamic nuclei. Papez circuit. Damage = amnesia.','1 million axons','700,000','70',
+[{t:'Theta',f:'4-8 Hz',o:'Fornix fibers',c:'#6a8caf',fn:'Theta rhythm transmission for memory',cs:'Mammillary bodies, Ant. thalamus'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',tg:'Mammillary Bodies',ds:'Hippocampal memory output relay'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Hippocampus',ds:'Memory output signals'}],
+[],[]);
+
+add('basalGanglia','Basal Ganglia','brain',1,[-.1,-.05,.05],'#7aab8e','Action selection and initiation. Direct pathway (Go) and indirect (No-Go). Habit formation, reward-based learning. Dysfunction = Parkinson\'s, Huntington\'s, OCD.','2 million (striatum)','1.2 million','60',
+[{t:'Beta',f:'13-30 Hz',o:'Striatum',c:'#d4a05a',fn:'Motor state, action selection',cs:'GPi, Thalamus'},{t:'Gamma',f:'30-100 Hz',o:'Globus pallidus',c:'#f5a623',fn:'Movement gating output',cs:'Thalamus (VL)'},{t:'Theta',f:'4-8 Hz',o:'NAc',c:'#6a8caf',fn:'Reward-based learning',cs:'PFC, VTA'}],
+[{tp:'GABAergic',cl:'#00d4aa',tg:'Thalamus (GPi/SNr)',ds:'Tonic inhibition - suppress unwanted movements'},{tp:'GABAergic',cl:'#00d4aa',tg:'Thalamus (direct)',ds:'Disinhibition for selected movement'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Cortex (corticostriatal)',ds:'Action selection input'},{tp:'Dopaminergic',cl:'#ffd700',fr:'SN/VTA',ds:'Reward/movement facilitation'}],
+[{t:'frontalLobe',tp:'Glutamatergic',s:'Action selection',c:'#ff6b35'}],
+['caudateNucleus','putamen','globusPallidus','nucleusAccumbens']);
+
+add('caudateNucleus','Caudate Nucleus','basalGanglia',3,[-.15,.1,.1],'#8abb9e','Dorsal striatum. Goal-directed action selection, procedural learning, spatial navigation.','600,000','350,000','58',
+[{t:'Beta',f:'13-30 Hz',o:'Caudate',c:'#d4a05a',fn:'Goal-directed action selection',cs:'GPi'}],
+[{tp:'GABAergic',cl:'#00d4aa',tg:'Globus Pallidus',ds:'Direct/indirect pathway output'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'PFC',ds:'Cognitive action plans'},{tp:'Dopaminergic',cl:'#ffd700',fr:'SNc',ds:'Reward/movement'}],
+[],[]);
+
+add('putamen','Putamen','basalGanglia',3,[-.2,-.05,.08],'#6a9b7e','Dorsal striatum. Primarily motor: movement selection, execution, motor learning. Dense dopaminergic input from SN.','800,000','480,000','60',
+[{t:'Beta',f:'13-30 Hz',o:'Putamen',c:'#d4a05a',fn:'Motor action gating',cs:'GPi'},{t:'Gamma',f:'30-100 Hz',o:'Putamen',c:'#f5a623',fn:'Movement sequence execution',cs:'GPi/SNr'}],
+[{tp:'GABAergic',cl:'#00d4aa',tg:'Globus Pallidus',ds:'Direct/indirect motor output'}],
+[{tp:'Glutamatergic',cl:'#ff6b35',fr:'Motor Cortex',ds:'Motor plan input'},{tp:'Dopaminergic',cl:'#ffd700',fr:'SN',ds:'Movement facilitation'}],
+[],[]);
+
+add('globusPallidus','Globus Pallidus','basalGanglia',3,[-.18,-.08,.03],'#5a8b6e','Output nucleus. GPi: tonic inhibition of thalamus. GPe: indirect pathway. Direct pathway disinhibits thalamus for movement.','300,000','200,000','66',
+[{t:'Gamma',f:'30-100 Hz',o:'GPi',c:'#f5a623',fn:'Movement gating',cs:'Thalamus (VL)'},{t:'Beta',f:'13-30 Hz',o:'GPe',c:'#d4a05a',fn:'Indirect pathway inhibition',cs:'STN, GPi'}],
+[{tp:'GABAergic',cl:'#00d4aa',tg:'Thalamus (VL)',ds:'Tonic inhibition - release for selected movements'}],
+[{tp:'GABAergic',cl:'#00d4aa',fr:'Putamen/Caudate',ds:'Direct/indirect input'}],
+[],[]);
+
+add('nucleusAccumbens','Nucleus Accumbens','basalGanglia',3,[-.12,-.1,.12],'#4a7b5e','Reward and pleasure center. Integrates dopamine reward with limbic emotion. Motivation, reward learning, addiction. Shell: emotional; Core: goal-directed.','200,000','130,000','65',
+[{t:'Theta',f:'4-8 Hz',o:'NAc shell',c:'#6a8caf',fn:'Reward anticipation, pleasure',cs:'VTA, PFC'},{t:'Gamma',f:'30-100 Hz',o:'NAc core',c:'#f5a623',fn:'Goal-directed behavior',cs:'PFC, VTA'}],
+[{tp:'GABAergic',cl:'#00d4aa',tg:'VTA',ds:'Reward prediction feedback'},{tp:'GABAergic',cl:'#00d4aa',tg:'Ventral Pallidum',ds:'Reward-driven motor output'}],
+[{tp:'Dopaminergic',cl:'#ffd700',fr:'VTA',ds:'Reward signal - dopamine = pleasure'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'Amygdala',ds:'Emotional/motivational input'},{tp:'Glutamatergic',cl:'#ff6b35',fr:'PFC',ds:'Goal-directed planning'}],
+[],[]);
+
+/* ====== THREE.JS SETUP ====== */
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.1,100);
+camera.position.set(0,.5,3.5);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x08090e);
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.2;
+document.body.prepend(renderer.domElement);
+
+const oc=new OrbitControls(camera,renderer.domElement);
+oc.enableDamping=true;oc.dampingFactor=.08;oc.minDistance=.5;oc.maxDistance=8;oc.target.set(0,.1,0);
+// Ensure touch zoom (pinch) is enabled properly
+oc.enableZoom = true;
+oc.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+
+scene.add(new THREE.AmbientLight(0x404050,.6));
+const dl2=new THREE.DirectionalLight(0xfff0e0,1.2);dl2.position.set(2,3,3);scene.add(dl2);
+const fl2=new THREE.DirectionalLight(0xc0d0ff,.4);fl2.position.set(-2,1,-2);scene.add(fl2);
+const rl2=new THREE.DirectionalLight(0xffd0a0,.3);rl2.position.set(0,-1,-3);scene.add(rl2);
+
+const sG2=new THREE.BufferGeometry();const sP3=[];
+for(let i=0;i<1200;i++)sP3.push((Math.random()-.5)*20,(Math.random()-.5)*20,(Math.random()-.5)*20);
+sG2.setAttribute('position',new THREE.Float32BufferAttribute(sP3,3));
+scene.add(new THREE.Points(sG2,new THREE.PointsMaterial({color:0x445566,size:.02})));
+
+const brainG=new THREE.Group();scene.add(brainG);
+const meshM={};const markM={};
+const RC={frontal:0xe07a5f,parietal:0xf2cc8f,temporal:0x81b29a,occipital:0x3d9b8f,cerebellum:0xc4956a,brainstem:0x8a9ba8,limbic:0xd4956a,basal:0x7aab8e,diencephalon:0xd4a05a,cerebrum:0xc9a0a0};
+
+/* Cerebrum */
+{const g=new THREE.SphereGeometry(1,128,96);const p=g.attributes.position;const c=new Float32Array(p.count*3);
+for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i);
+if(y<-.1)y*=.6;if(z>.2)z*=1.15;y*=1.05;
+if(Math.abs(x)<.06&&z>-.3)y*=.85;
+const la=Math.atan2(y+.1,z);if(Math.abs(x)>.3&&la>.2&&la<1.2)y-=.04;
+const n=fbm(x*6,y*6,z*6,4);const d=(n-.5)*.12;const l=Math.sqrt(x*x+y*y+z*z);
+if(l>0){x+=x/l*d;y+=y/l*d;z+=z/l*d;}
+p.setXYZ(i,x,y,z);
+let cl=new THREE.Color(RC.cerebrum);
+if(z>.2&&y>.15)cl=new THREE.Color(RC.frontal);
+else if(z<-.3&&y>-.1)cl=new THREE.Color(RC.occipital);
+else if(Math.abs(x)>.5&&y<.3)cl=new THREE.Color(RC.temporal);
+else if(y>.4&&z<.2)cl=new THREE.Color(RC.parietal);
+if(Math.abs(x)<.08&&z>-.3)cl.multiplyScalar(.65);
+const v=.92+fbm(x*12,y*12,z*12,2)*.16;
+c[i*3]=cl.r*v;c[i*3+1]=cl.g*v;c[i*3+2]=cl.b*v;}
+g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));g.computeVertexNormals();
+const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.65,metalness:.05}));
+m.scale.set(.95,.92,1);m.userData={id:'cerebrum'};brainG.add(m);meshM.cerebrum=m;}
+
+/* Cerebellum */
+{const g=new THREE.SphereGeometry(.42,64,48);const p=g.attributes.position;const c=new Float32Array(p.count*3);
+for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i);x*=1.1;y*=.65;z*=.8;
+const f=Math.sin(y*25)*.015+Math.sin(y*40)*.008;const l=Math.sqrt(x*x+y*y+z*z);
+if(l>0){x+=x/l*f;y+=y/l*f;z+=z/l*f;}
+p.setXYZ(i,x,y,z);const cl=new THREE.Color(RC.cerebellum);const v=.85+Math.abs(Math.sin(y*25))*.3;
+c[i*3]=cl.r*v;c[i*3+1]=cl.g*v;c[i*3+2]=cl.b*v;}
+g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));g.computeVertexNormals();
+const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.7,metalness:.03}));
+m.position.set(0,-.3,-.72);m.userData={id:'cerebellum'};brainG.add(m);meshM.cerebellum=m;}
+
+/* Brainstem */
+{const g=new THREE.CylinderGeometry(.12,.18,.9,24,8);const p=g.attributes.position;const c=new Float32Array(p.count*3);
+for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i);z-=Math.max(0,y)*.15;
+const n=fbm(x*8,y*8,z*8,3);const d=(n-.5)*.02;const l=Math.sqrt(x*x+z*z);
+if(l>0){x+=x/l*d;z+=z/l*d;}
+p.setXYZ(i,x,y,z);const cl=new THREE.Color(RC.brainstem);const v=.88+n*.24;
+c[i*3]=cl.r*v;c[i*3+1]=cl.g*v;c[i*3+2]=cl.b*v;}
+g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));g.computeVertexNormals();
+const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.75,metalness:.02}));
+m.position.set(0,-.52,-.42);m.rotation.x=.15;m.userData={id:'brainstem'};brainG.add(m);meshM.brainstem=m;}
+
+/* Inner structures */
+[['diencephalon',.5,.35,.4,0,.05,-.1,RC.diencephalon],['limbicSys',.4,.3,.35,0,.05,.15,RC.limbic],['basalGanglia',.35,.3,.3,-.1,-.05,.05,RC.basal]].forEach(s=>{
+const g=new THREE.SphereGeometry(.15,32,24);const p=g.attributes.position;const c=new Float32Array(p.count*3);
+for(let i=0;i<p.count;i++){let x=p.getX(i)*s[1],y=p.getY(i)*s[2],z=p.getZ(i)*s[3];
+const n=fbm(x*10,y*10,z*10,3);const d=(n-.5)*.01;const l=Math.sqrt(x*x+y*y+z*z);
+if(l>0){x+=x/l*d;y+=y/l*d;z+=z/l*d;}
+p.setXYZ(i,x,y,z);const cl=new THREE.Color(s[7]);const v=.9+n*.2;
+c[i*3]=cl.r*v;c[i*3+1]=cl.g*v;c[i*3+2]=cl.b*v;}
+g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));g.computeVertexNormals();
+const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.6,metalness:.05,transparent:true,opacity:.85}));
+m.position.set(s[4],s[5],s[6]);m.userData={id:s[0]};m.visible=false;brainG.add(m);meshM[s[0]]=m;});
+
+/* Markers */
+Object.values(D).forEach(d=>{if(d.lv>=2&&d.pos){
+const sc=d.lv===2?.06:d.lv===3?.045:.035;
+const g=new THREE.SphereGeometry(sc,16,12);
+const mt=new THREE.MeshStandardMaterial({color:new THREE.Color(d.col),roughness:.4,metalness:.2,emissive:new THREE.Color(d.col),emissiveIntensity:.15});
+const m=new THREE.Mesh(g,mt);m.position.set(d.pos[0],d.pos[1],d.pos[2]);m.userData={id:d.id};brainG.add(m);markM[d.id]=m;}});
+
+/* ====== SIGNAL PATHS ====== */
+const sigLns=[];const sigDts=[];let showSig=false;const allSD=[];
+Object.values(D).forEach(d=>{if(d.cn&&d.pos){d.cn.forEach(c=>{const td=D[c.t];if(!td||!td.pos)return;
+const cv=new THREE.CatmullRomCurve3([new THREE.Vector3(d.pos[0],d.pos[1],d.pos[2]),new THREE.Vector3((d.pos[0]+td.pos[0])/2,(d.pos[1]+td.pos[1])/2+.08,(d.pos[2]+td.pos[2])/2),new THREE.Vector3(td.pos[0],td.pos[1],td.pos[2])]);
+const pts=cv.getPoints(40);const g=new THREE.BufferGeometry().setFromPoints(pts);
+const mt=new THREE.LineBasicMaterial({color:new THREE.Color(c.c),transparent:true,opacity:.25});
+const ln=new THREE.Line(g,mt);ln.visible=false;brainG.add(ln);sigLns.push(ln);
+const ds=[];for(let i=0;i<3;i++){const dg=new THREE.SphereGeometry(.01,8,6);const dm=new THREE.MeshBasicMaterial({color:new THREE.Color(c.c)});
+const dot=new THREE.Mesh(dg,dm);dot.userData={cv,t:i/3,sp:.003+Math.random()*.004};dot.visible=false;brainG.add(dot);sigDts.push(dot);ds.push(dot);}
+allSD.push({from:d.id,to:c.t,ln,ds,cv,color:c.c});
+});}});
+
+/* ====== INTERACTION ====== */
+const ray=new THREE.Raycaster();const ms=new THREE.Vector2();
+let selId=null;let flyAn=null;
+
+function allM(){const m=[];Object.values(meshM).forEach(x=>m.push(x));Object.values(markM).forEach(x=>m.push(x));return m;}
+
+renderer.domElement.addEventListener('pointerdown',e=>{
+if(e.target.closest('#pnl,#tb,#lg,#sm,#ht,#touch-zoom'))return;
+ms.x=(e.clientX/innerWidth)*2-1;ms.y=-(e.clientY/innerHeight)*2+1;
+ray.setFromCamera(ms,camera);const hits=ray.intersectObjects(allM(),false);
+if(hits.length>0){const id=hits[0].object.userData.id;if(id&&D[id])selectPart(id);}});
+
+function flyTo(pos){const tp=new THREE.Vector3(pos[0],pos[1],pos[2]);const dist=camera.position.distanceTo(tp);
+const cp=tp.clone().add(new THREE.Vector3(0,.2,dist<1?1.2:dist<2?1.8:2.5));
+flyAn={sp:camera.position.clone(),ep:cp,st:oc.target.clone(),et:tp.clone(),t:0,dur:60};}
+
+/* ====== ZOOM FUNCTIONS ====== */
+function zoomCamera(factor) {
+    const dist = camera.position.distanceTo(oc.target);
+    const newDist = Math.max(oc.minDistance, Math.min(oc.maxDistance, dist * factor));
+    const dir = camera.position.clone().sub(oc.target).normalize();
+    const endPos = oc.target.clone().add(dir.multiplyScalar(newDist));
+    flyAn = { sp: camera.position.clone(), ep: endPos, st: oc.target.clone(), et: oc.target.clone(), t: 0, dur: 20 };
+}
+
+// Floating Touch/Click Zoom Buttons
+document.getElementById('tzI').addEventListener('pointerdown', (e) => { e.stopPropagation(); zoomCamera(0.75); });
+document.getElementById('tzO').addEventListener('pointerdown', (e) => { e.stopPropagation(); zoomCamera(1.33); });
+
+// Double tap/click to zoom
+let lastTap = 0;
+renderer.domElement.addEventListener('touchend', (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) {
+        zoomCamera(0.6); // Zoom in closer on double tap
+    }
+    lastTap = currentTime;
+}, {passive: true});
+
+renderer.domElement.addEventListener('dblclick', () => {
+    zoomCamera(0.6); // Zoom in closer on double click
+});
+
+/* ====== SELECT ====== */
+function selectPart(id){
+selId=id;const d=D[id];if(!d)return;flyTo(d.pos);
+document.getElementById('pt2').textContent=d.nm;
+document.getElementById('psb').textContent=anc(id);
+document.getElementById('pov').textContent=d.fn;
+document.getElementById('sN').style.display=d.pr?'':'none';
+document.getElementById('bk').onclick=()=>{if(d.pr)selectPart(d.pr)};
+const ch=document.getElementById('pch');ch.innerHTML='';
+if(d.ch&&d.ch.length>0)d.ch.forEach(ci=>{const cd=D[ci];if(!cd)return;const b=document.createElement('button');b.className='bt';b.textContent=cd.nm;b.onclick=()=>selectPart(ci);ch.appendChild(b)});
+else ch.innerHTML='<span style="font-size:9px;color:#7a7e94">No further sub-regions</span>';
+const dg=document.getElementById('pdg');dg.innerHTML='';
+const its=[['Neurons',d.nr],['Active',d.an],['Activity',d.ap+'%']];
+let hd=false;its.forEach(([k,v])=>{if(v){hd=true;dg.innerHTML+=`<div class="gi"><div class="k">${k}</div><div class="v">${v}</div></div>`}});
+document.getElementById('sD').style.display=hd?'':'none';
+document.getElementById('sF').style.display='';document.getElementById('pfn').textContent=d.fn;
+const wvc=document.getElementById('pwv');wvc.innerHTML='';
+if(d.wv&&d.wv.length>0){document.getElementById('sW').style.display='';d.wv.forEach((w,i)=>{
+const cid='w'+id+i;
+wvc.innerHTML+=`<div class="wc"><div><canvas id="${cid}" width="60" height="28"></canvas></div><div><div class="wn" style="color:${w.c}">${w.t}</div><div class="wf">${w.f} | ${w.o}</div><div class="wfn">${w.fn}</div><div class="wf" style="color:#8ab0d0">Consumed: ${w.cs||'N/A'}</div></div></div>`;
+requestAnimationFrame(()=>{const cv=document.getElementById(cid);if(!cv)return;const ctx=cv.getContext('2d');ctx.clearRect(0,0,60,28);const lf=parseFloat(w.f.split('-')[0])||5;const pd=70/lf;ctx.strokeStyle=w.c;ctx.lineWidth=1.2;ctx.beginPath();for(let x=0;x<60;x++){const y=14+Math.sin(x/pd*Math.PI*2)*9+Math.sin(x/pd*Math.PI*4)*3;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke()});});}else document.getElementById('sW').style.display='none';
+const nec=document.getElementById('pne');nec.innerHTML='';
+if(d.lv>=1){document.getElementById('sA').style.display='';
+nec.innerHTML=`<div class="cf"><span style="color:#7a7e94;font-size:8px">Neurons</span><span style="font-weight:600;margin-left:auto">${d.nr}</span></div><div class="cf"><span style="color:#7a7e94;font-size:8px">Active at Rest</span><span style="font-weight:600;margin-left:auto">${d.an}</span></div><div style="margin:3px 0"><span style="color:#7a7e94;font-size:8px">Activity Level</span><div class="nb"><div class="nf" style="width:${d.ap}%;background:linear-gradient(90deg,#f0a030,#e06050)"></div></div><span style="font-size:8px;color:#f0a030">${d.ap}%</span></div><div class="cf"><span style="color:#7a7e94;font-size:8px">Primary Neurotransmitter</span><span style="font-weight:600;margin-left:auto">${d.cn&&d.cn[0]?d.cn[0].tp.split('/')[0]:'Glutamate'}</span></div><div class="cf"><span style="color:#7a7e94;font-size:8px">Spike Type</span><span style="font-weight:600;margin-left:auto">Action Potential</span></div>`;}else document.getElementById('sA').style.display='none';
+const sgc=document.getElementById('psg');sgc.innerHTML='';
+if((d.so&&d.so.length>0)||(d.si&&d.si.length>0)){document.getElementById('sS').style.display='';
+if(d.so&&d.so.length>0){sgc.innerHTML+=`<div style="font-size:8px;font-weight:600;color:#ff6b35;margin-bottom:3px"><i class="fas fa-sign-out-alt"></i> SIGNALS ORIGINATING</div>`;
+d.so.forEach(s=>{sgc.innerHTML+=`<div class="so"><div class="sf"><div class="dt" style="background:${s.cl}"></div><span style="color:${s.cl};font-weight:600;font-size:7px">${s.tp}</span><span style="color:#f0a030;font-size:7px"><i class="fas fa-arrow-right"></i></span><span style="font-size:8px">${s.tg}</span></div><div style="font-size:7px;color:#7a7e94;margin-left:10px">${s.ds}</div></div>`});}
+if(d.si&&d.si.length>0){sgc.innerHTML+=`<div style="font-size:8px;font-weight:600;color:#00d4aa;margin:6px 0 3px"><i class="fas fa-sign-in-alt"></i> SIGNALS CONSUMED</div>`;
+d.si.forEach(s=>{sgc.innerHTML+=`<div class="si2"><div class="sf"><div class="dt" style="background:${s.cl}"></div><span style="color:${s.cl};font-weight:600;font-size:7px">${s.tp}</span><span style="color:#f0a030;font-size:7px"><i class="fas fa-arrow-left"></i></span><span style="font-size:8px">from ${s.fr}</span></div><div style="font-size:7px;color:#7a7e94;margin-left:10px">${s.ds}</div></div>`});}
+}else document.getElementById('sS').style.display='none';
+const cnc=document.getElementById('pcn');cnc.innerHTML='';
+if(d.cn&&d.cn.length>0){document.getElementById('sC').style.display='';d.cn.forEach(c=>{const td=D[c.t];
+cnc.innerHTML+=`<div class="cf"><div class="dt" style="background:${c.c}"></div><span style="color:${c.c};font-weight:600">${c.tp}</span><span class="ar"><i class="fas fa-arrow-right"></i></span><span>${td?td.nm:c.t}</span><span style="color:#7a7e94;margin-left:auto;font-size:7px">${c.s}</span></div>`});}else document.getElementById('sC').style.display='none';
+updateBC(id);hl(id);}
+
+function anc(id){const p=[];let c=id;while(c){const d=D[c];if(d){p.unshift(d.nm);c=d.pr}else break}return p.join(' > ')}
+
+function updateBC(id){const bc=document.getElementById('bc');bc.innerHTML='';const p=[];let c=id;
+while(c){const d=D[c];if(d){p.unshift(d);c=d.pr}else break}
+p.forEach((d,i)=>{if(i>0)bc.innerHTML+='<span class="sp"><i class="fas fa-chevron-right" style="font-size:5px"></i></span>';
+bc.innerHTML+=`<span class="cm" data-id="${d.id}">${d.nm.length>10?d.nm.substring(0,10)+'..':d.nm}</span>`});
+bc.querySelectorAll('.cm').forEach(el=>{el.onclick=()=>selectPart(el.dataset.id)});}
+
+function hl(id){Object.values(markM).forEach(m=>{m.material.emissiveIntensity=.15;m.scale.set(1,1,1)});
+Object.values(meshM).forEach(m=>{if(m.material.emissive)m.material.emissive.setHex(0);m.material.emissiveIntensity=0});
+if(markM[id])markM[id].material.emissiveIntensity=.7;
+if(meshM[id]){meshM[id].material.emissive=new THREE.Color(D[id].col||'#ffffff');meshM[id].material.emissiveIntensity=.12}
+allSD.forEach(s=>{const rel=s.from===id||s.to===id;s.ln.material.opacity=rel?.5:.15;});}
+
+/* ====== LABELS ====== */
+const lblC=document.getElementById('lbl');const lblE={};
+Object.values(D).forEach(d=>{if(d.lv>=1&&d.pos){const el=document.createElement('div');el.className='lb';el.textContent=d.nm;el.style.color=d.col||'#fff';lblC.appendChild(el);lblE[d.id]=el}});
+
+function updateLbl(){const dist=camera.position.distanceTo(oc.target);const zl=Math.max(0,Math.min(5,3.5/dist));
+Object.entries(lblE).forEach(([id,el])=>{const d=D[id];if(!d)return;
+let show=false;if(d.lv===1&&zl<1.5)show=true;if(d.lv===2&&zl>=1&&zl<3)show=true;
+if(d.lv===3&&zl>=2&&zl<4.5)show=true;if(d.lv>=4&&zl>=3)show=true;if(selId===id)show=true;
+if(!show){el.style.opacity='0';return}
+const v=new THREE.Vector3(d.pos[0],d.pos[1],d.pos[2]);v.project(camera);
+if(v.z>1){el.style.opacity='0';return}
+el.style.opacity='1';el.style.left=((v.x*.5+.5)*innerWidth)+'px';el.style.top=((-v.y*.5+.5)*innerHeight)+'px';});}
+
+/* ====== VIEW MODES ====== */
+document.getElementById('vE').onclick=()=>setV('e');
+document.getElementById('vC').onclick=()=>setV('c');
+document.getElementById('vX').onclick=()=>setV('x');
+document.getElementById('vS').onclick=()=>{showSig=!showSig;document.getElementById('vS').classList.toggle('on',showSig);
+sigLns.forEach(l=>l.visible=showSig);sigDts.forEach(d=>d.visible=showSig);if(selId)hl(selId);};
+
+function setV(m){document.querySelectorAll('#tb .vb').forEach(b=>{if(b.id!=='vS')b.classList.remove('on')});
+document.getElementById(m==='e'?'vE':m==='c'?'vC':'vX').classList.add('on');
+[meshM.cerebrum,meshM.cerebellum,meshM.brainstem].forEach(ms2=>{if(!ms2)return;
+ms2.material.transparent=m!=='e';ms2.material.opacity=m==='c'?.45:m==='x'?.2:1;ms2.material.wireframe=m==='x';});
+['diencephalon','limbicSys','basalGanglia'].forEach(k=>{if(meshM[k]){meshM[k].visible=m!=='e';meshM[k].material.wireframe=m==='x';}});}
+
+document.getElementById('tgP').onclick=function(){const p=document.getElementById('pnl');
+p.style.transform=p.style.transform==='translateX(360px)'?'':'translateX(360px)';
+this.querySelector('i').classList.toggle('fa-chevron-right');this.querySelector('i').classList.toggle('fa-chevron-left');};
+
+document.getElementById('sgL').innerHTML=[
+{n:'Glutamatergic',c:'#ff6b35',f:'Cortex → Striatum',r:'40 Hz'},
+{n:'GABAergic',c:'#00d4aa',f:'Striatum → Thalamus',r:'25 Hz'},
+{n:'Dopaminergic',c:'#ffd700',f:'SNc → Striatum',r:'4 Hz'},
+{n:'Serotonergic',c:'#4ecdc4',f:'Raphe → Cortex',r:'2 Hz'},
+{n:'Noradrenergic',c:'#87ceeb',f:'LC → Cortex',r:'3 Hz'},
+{n:'Cholinergic',c:'#ff69b4',f:'Basal forebrain → Cortex',r:'8 Hz'}
+].map(s=>`<div class="sli"><div class="pu" style="background:${s.c}"></div><span style="color:${s.c};font-weight:600">${s.n}</span><span>${s.f}</span><span style="color:#7a7e94;margin-left:auto">${s.r}</span></div>`).join('');
+
+/* ====== ANIMATION LOOP ====== */
+const clock=new THREE.Clock();
+function animate(){requestAnimationFrame(animate);const t=clock.getElapsedTime();
+oc.update();
+if(flyAn){flyAn.t++;const p=Math.min(1,flyAn.t/flyAn.dur);const ep=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+camera.position.lerpVectors(flyAn.sp,flyAn.ep,ep);oc.target.lerpVectors(flyAn.st,flyAn.et,ep);
+if(p>=1)flyAn=null;}
+if(showSig){sigDts.forEach(d=>{d.userData.t+=d.userData.sp;if(d.userData.t>1)d.userData.t=0;
+const pt=d.userData.cv.getPoint(d.userData.t);d.position.copy(pt);
+const s=.8+Math.sin(t*8)*.4;d.scale.set(s,s,s);});}
+const pulse=1+Math.sin(t*1.2)*.002;brainG.scale.set(pulse,pulse,pulse);
+if(selId&&markM[selId]){const s=1.5+Math.sin(t*4)*.3;markM[selId].scale.set(s,s,s);}
+updateLbl();
+document.getElementById('zl').textContent='Zoom: '+Math.round(350/camera.position.distanceTo(oc.target))+'%';
+renderer.render(scene,camera);}
+animate();
+
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+selectPart('brain');
+</script>
+</body>
+</html>
